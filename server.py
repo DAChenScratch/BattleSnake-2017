@@ -1,9 +1,8 @@
 import os
 import random
-
+from app import  helper,settings
 import cherrypy
-
-from snake import Battlesnake
+from timeit import default_timer as timer
 
 """
 This is a simple Battlesnake server written in Python.
@@ -17,13 +16,8 @@ class Server(object):
         # This function is called when you register your Battlesnake on play.battlesnake.com
         # It controls your Battlesnake appearance and author permissions.
         # TIP: If you open your Battlesnake URL in browser you should see this data
-        snake = Battlesnake()
         return {
-            "apiversion": snake.apiversion,
-            "author": snake.author,
-            "color": snake.color,
-            "head": snake.head,
-            "tail": snake.tail,
+            "apiversion": "1",
         }
 
     @cherrypy.expose
@@ -33,6 +27,7 @@ class Server(object):
         # cherrypy.request.json contains information about the game that's about to be played.
         # TODO: Use this function to decide how your snake is going to look on the board.
         data = cherrypy.request.json
+        settings.initializeMap(board_width, board_height)
 
         print("START")
         return "ok"
@@ -44,9 +39,19 @@ class Server(object):
         # This function is called on every turn of a game. It's how your snake decides where to move.
         # Valid moves are "up", "down", "left", or "right".
         # TODO: Use the information in cherrypy.request.json to decide your next move.
-        data = cherrypy.request.json
-        move = Battlesnake().move(data)
-        return {"move": move}
+        start = timer()
+        data = cerrypy.request.json
+        direction = helper.handler(data['you], data['board']['snakes'], data['board']['food'])
+        end = timer()
+        print "TOTAL RESPONSE TIME: %.1f" % ((end - start) * 1000)
+        if direction == "up":
+            return {"move":"down"}
+        if direction == "down":
+            return {"move":"up"}
+        return {
+            'move': direction,
+            'taunt': 'battlesnake-python!'
+        }
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
@@ -70,3 +75,59 @@ if __name__ == "__main__":
 
     print("Starting Battlesnake Server...")
     cherrypy.quickstart(server)
+"""
+import bottle,os,random
+from timeit import default_timer as timer
+import helper,settings
+
+@bottle.route('/static/<path:path>')
+def static(path):
+    return bottle.static_file(path, root='static/')
+
+
+@bottle.post('/start')
+def start():
+    data = bottle.request.json
+    game_id = data['game_id']
+    board_width = data['width']
+    board_height = data['height']
+    settings.initializeMap(board_width, board_height) #set global map size
+    head_url = '%s://%s/static/head.png' % (
+        bottle.request.urlparts.scheme,
+        bottle.request.urlparts.netloc
+    )
+
+    return {
+        'color': '#00FF00',
+        'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
+        'head_url': head_url,
+        'name': 'Desafinado'
+    }
+@bottle.get('/')
+def metadata():
+    return {
+        'apiversion':'1',
+    }
+
+@bottle.post('/move')
+def move():
+    start = timer()
+    data = bottle.request.json
+    direction = helper.handler(data.get('you'), data.get('snakes'), data.get('food'))
+    end = timer()
+    print "TOTAL RESPONSE TIME: %.1f" % ((end - start) * 1000)
+    if direction == "up":
+        return {"move":"down"}
+    if direction == "down":
+        return {"move":"up"}
+    return {
+        'move': direction,
+        'taunt': 'battlesnake-python!'
+    }
+
+
+# Expose WSGI app (so gunicorn can find it)
+application = bottle.default_app()
+if __name__ == '__main__':
+    bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '8080'))
+"""
