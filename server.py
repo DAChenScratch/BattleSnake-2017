@@ -41,7 +41,7 @@ class Server(object):
         # TODO: Use the information in cherrypy.request.json to decide your next move.
         start = timer()
         data = cerrypy.request.json
-        direction = helper.handler(data['you], data['board']['snakes'], data['board']['food'])
+        direction = helper.handler(data['you']['id'], data['board']['snakes'], data['board']['food'])
         end = timer()
         print "TOTAL RESPONSE TIME: %.1f" % ((end - start) * 1000)
         if direction == "up":
