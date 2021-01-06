@@ -13,20 +13,20 @@ def handler(id, snakeCoords, food):
 	otherheadsAndHealth = []
 	otherheadsAndDuration = []
 	for snake in snakeCoords:
-		coordinates = snake.get('coords')
+		coordinates = snake.get('body')
 		length = len(coordinates)
 		for index, xy in enumerate(coordinates):
 			# print graph.walls
 			# print ([xy[0],xy[1]], 0)
 			graph.walls.append(makeWall(xy, index, length)) # tuple of (coord, duration) default 0
 		if snake.get('id') == id: # Our snake
-			head = snake.get('coords')[0]
-			foodLevel = snake.get('health_points')
+			head = snake.get('body')[0]
+			foodLevel = snake.get('health')
 			ourSnakeLength = length
 		else:
-			otherheadsAndDuration.append(makeWall(snake.get('coords')[0], 0,length)) # tuple of (coord, duration) default 0
+			otherheadsAndDuration.append(makeWall(snake.get('body')[0], 0,length)) # tuple of (coord, duration) default 0
 			otherSnakeLengths.append(length)
-			otherheadsAndHealth.append((snake.get('coords')[0], snake.get('health_points')))
+			otherheadsAndHealth.append((snake.get('body')[0], snake.get('health')))
 
 	for xy in food:
 		graph.food.append( (xy[0],xy[1]) )
