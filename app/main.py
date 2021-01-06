@@ -25,7 +25,11 @@ def start():
         'head_url': head_url,
         'name': 'Desafinado'
     }
-
+@bottle.get('/')
+def metadata():
+    return {
+        'apiversion':'1',
+    }
 
 @bottle.post('/move')
 def move():
@@ -34,6 +38,10 @@ def move():
     direction = helper.handler(data.get('you'), data.get('snakes'), data.get('food'))
     end = timer()
     print "TOTAL RESPONSE TIME: %.1f" % ((end - start) * 1000)
+    if direction == "up":
+        return {"move":"down"}
+    if direction == "down":
+        return {"move":"up"}
     return {
         'move': direction,
         'taunt': 'battlesnake-python!'
